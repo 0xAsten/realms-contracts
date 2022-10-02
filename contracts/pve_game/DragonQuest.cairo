@@ -64,7 +64,22 @@ func combat{
     DragonQuest.assert_only_token_owner(adventurerId, adventurer_address);
 
     let (adventurer) = IAdventurer.getAdventurerById(adventurer_address, adventurerId);
+    
+    let strength = adventurer.Strength;
+    let is_le7 = is_le(strength, 7);
+    if (is_le7 == 1) {
+        tempvar strength = 8;
+    }
 
+    let dexterity = adventurer.dexterity;
+    let is_le7 = is_le(dexterity, 7);
+    if (is_le7 == 1) {
+        tempvar dexterity = 8;
+    }
+
+    let level = adventurer.Level;
+
+    attack(strength, dexterity, level, adventurer.Health, Dragon.Health);
 
     return ();
 }
@@ -72,8 +87,8 @@ func combat{
 func attack{
     syscall_ptr: felt*, 
     pedersen_ptr: HashBuiltin*,
-    range_check_ptr
-}(adventurer: AdventurerState, adventurerHealth: felt, dragonHealth: felt) -> (result: felt){
+    range_check_ptr,
+}(strength: felt, dexterity: felt, level: felt, adventurerHealth: felt, dragonHealth: felt) -> (result: felt){
     alloc_locals;
 
     let is_le0 = is_le(adventurerHealth, 0);
@@ -87,12 +102,12 @@ func attack{
     }
 
     // attack
-    let (adventurerHealth, dragonHealth) = attack_action(PALYER, OPPOSITE, adventurer.Strength, Dragon.Dexterity, adventurer.Level, Dragon.Level, adventurerHealth, dragonHealth);
+    let (adventurerHealth, dragonHealth) = attack_action(PALYER, OPPOSITE, strength, Dragon.Dexterity, level, Dragon.Level, adventurerHealth, dragonHealth);
 
     // defend
-    let (dragonHealth, adventurerHealth) = attack_action(OPPOSITE, PALYER, Dragon.Strength, adventurer.Dexterity, Dragon.Level, adventurer.Level, dragonHealth, adventurerHealth);
+    let (dragonHealth, adventurerHealth) = attack_action(OPPOSITE, PALYER, Dragon.Strength, dexterity, Dragon.Level, level, dragonHealth, adventurerHealth);
 
-    let (r) = attack(adventurer, adventurerHealth, dragonHealth);
+    let (r) = attack(strength, dexterity, level, adventurerHealth, dragonHealth);
 
     return (result = r);
 }
@@ -127,7 +142,7 @@ func attack_action{
         //     Damage = damage,
         // );
 
-        tempvar defenderHealth = defenderHealth - damage*10;
+        tempvar defenderHealth = defenderHealth - damage*5;
 
         return (attackerHealth, defenderHealth);
     } else {
@@ -146,7 +161,7 @@ func attack_action{
             //     Damage = damage,
             // );
 
-            tempvar defenderHealth = defenderHealth - damage*10;
+            tempvar defenderHealth = defenderHealth - damage*5;
 
             return (attackerHealth, defenderHealth);
         }

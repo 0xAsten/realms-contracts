@@ -40,16 +40,8 @@ func test_combat{
     range_check_ptr
 }() {
     alloc_locals;
-
-    let (adventurer: AdventurerState) = AdventurerLib.birth(
-        TestAdventurerState.Race,
-        TestAdventurerState.HomeRealm,
-        TestAdventurerState.Name,
-        TestAdventurerState.Birthdate,
-        TestAdventurerState.Order,
-    );
-
-    let (result: felt) = attack(adventurer, 100, 200);
+    
+    let (result: felt) = attack(8, 8, 0, 100, 200);
 
     assert result = 0;
 
