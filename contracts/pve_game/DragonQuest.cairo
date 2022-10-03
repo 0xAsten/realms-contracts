@@ -77,6 +77,8 @@ func combat{
     pedersen_ptr: HashBuiltin*,
     range_check_ptr
 }(adventurerId: Uint256) {
+    alloc_locals;
+
     let (adventurer_address) = Adventurer_address.read();
     DragonQuest.assert_only_token_owner(adventurerId, adventurer_address);
 
@@ -86,19 +88,23 @@ func combat{
     let is_le7 = is_le(strength, 7);
     if (is_le7 == 1) {
         tempvar strength = 8;
+    } else {
+        tempvar strength = strength;
     }
 
-    let dexterity = adventurer.dexterity;
+    let dexterity = adventurer.Dexterity;
     let is_le7 = is_le(dexterity, 7);
     if (is_le7 == 1) {
         tempvar dexterity = 8;
+    }else {
+        tempvar dexterity = dexterity;
     }
 
     let level = adventurer.Level;
 
     let (count) = Adventure_count.read(adventurerId);
     let count = count + 1;
-    Adventure_count.write(count);
+    Adventure_count.write(adventurerId, count);
 
     attack(adventurerId, count, strength, dexterity, level, adventurer.Health, Dragon.Health);
 
@@ -222,4 +228,31 @@ func set_adventurer{
     Proxy.assert_only_admin();
     Adventurer_address.write(adventurer);
     return ();
+}
+
+@view
+func get_count{
+    syscall_ptr: felt*, 
+    pedersen_ptr: HashBuiltin*,
+    range_check_ptr
+}(adventurerId: Uint256) -> (count: felt) {
+    return Adventure_count.read(adventurerId);
+}
+
+@view
+func get_xoroshiro_address{
+    syscall_ptr: felt*, 
+    pedersen_ptr: HashBuiltin*,
+    range_check_ptr
+}() -> (address: felt) {
+    return Xoroshiro_address.read();
+}
+
+@view
+func get_adventurer_address{
+    syscall_ptr: felt*, 
+    pedersen_ptr: HashBuiltin*,
+    range_check_ptr
+}() -> (address: felt) {
+    return Adventurer_address.read();
 }

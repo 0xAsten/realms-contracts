@@ -10,7 +10,8 @@ stdout-on-success = true
 
 # This section is explained in the "Project compilation" guide.
 ["protostar.contracts"]
-main = ["./contracts/settling_game/Arbiter.cairo"]
+# main = ["./contracts/settling_game/Arbiter.cairo"]
+main = ["./contracts/pve_game/DragonQuest.cairo"]
 
 ["protostar.build"]
 cairo-path = ["./lib/cairo_contracts/src"]
