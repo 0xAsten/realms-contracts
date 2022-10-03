@@ -1,6 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
+from starkware.cairo.common.uint256 import Uint256
 
 from contracts.loot.constants.adventurer import AdventurerState
 from contracts.loot.adventurer.library import AdventurerLib
@@ -40,8 +41,8 @@ func test_combat{
     range_check_ptr
 }() {
     alloc_locals;
-    
-    let (result: felt) = attack(8, 8, 0, 100, 200);
+
+    let (result: felt) = attack(Uint256(1, 0), 1, 8, 8, 0, 100, 200);
 
     assert result = 0;
 

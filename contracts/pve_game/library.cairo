@@ -25,6 +25,10 @@ func Xoroshiro_address() -> (address: felt) {
 func Adventurer_address() -> (address: felt) {
 }
 
+@storage_var
+func Adventure_count(adventurer: Uint256) -> (count: felt) {
+}
+
 const PALYER = 0;
 const OPPOSITE = 1;
 

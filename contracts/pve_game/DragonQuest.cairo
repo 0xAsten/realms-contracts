@@ -9,10 +9,11 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math_cmp import is_le
+from starkware.cairo.common.uint256 import Uint256
 
 from openzeppelin.upgrades.library import Proxy
 
-from contracts.pve_game.library import DragonQuest, Xoroshiro_address, Adventurer_address, Action, PALYER, OPPOSITE
+from contracts.pve_game.library import DragonQuest, Xoroshiro_address, Adventurer_address, Action, PALYER, OPPOSITE, Adventure_count
 from contracts.loot.adventurer.IAdventurer import IAdventurer
 from contracts.loot.constants.adventurer import AdventurerState
 
@@ -26,6 +27,22 @@ namespace Dragon {
     const Intelligence = 16;
     const Wisdom = 16;
     const Charisma = 16;  
+}
+
+@event
+func Attack(
+    adventurerId: Uint256,
+    count: felt,
+    attacker: felt,
+    defender: felt,
+    ab: felt,
+    ac: felt,
+    attackerHealth: felt,
+    defenderHealth: felt,
+    damage: felt,
+    roll_d20: felt,
+    is_hit: felt,
+) {
 }
 
 @external
@@ -59,7 +76,7 @@ func combat{
     syscall_ptr: felt*, 
     pedersen_ptr: HashBuiltin*,
     range_check_ptr
-}(adventurerId: felt) {
+}(adventurerId: Uint256) {
     let (adventurer_address) = Adventurer_address.read();
     DragonQuest.assert_only_token_owner(adventurerId, adventurer_address);
 
@@ -79,7 +96,11 @@ func combat{
 
     let level = adventurer.Level;
 
-    attack(strength, dexterity, level, adventurer.Health, Dragon.Health);
+    let (count) = Adventure_count.read(adventurerId);
+    let count = count + 1;
+    Adventure_count.write(count);
+
+    attack(adventurerId, count, strength, dexterity, level, adventurer.Health, Dragon.Health);
 
     return ();
 }
@@ -88,7 +109,7 @@ func attack{
     syscall_ptr: felt*, 
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
-}(strength: felt, dexterity: felt, level: felt, adventurerHealth: felt, dragonHealth: felt) -> (result: felt){
+}(adventurerId: Uint256, count: felt, strength: felt, dexterity: felt, level: felt, adventurerHealth: felt, dragonHealth: felt) -> (result: felt){
     alloc_locals;
 
     let is_le0 = is_le(adventurerHealth, 0);
@@ -102,12 +123,12 @@ func attack{
     }
 
     // attack
-    let (adventurerHealth, dragonHealth) = attack_action(PALYER, OPPOSITE, strength, Dragon.Dexterity, level, Dragon.Level, adventurerHealth, dragonHealth);
+    let (adventurerHealth, dragonHealth) = attack_action(adventurerId, count, PALYER, OPPOSITE, strength, Dragon.Dexterity, level, Dragon.Level, adventurerHealth, dragonHealth);
 
     // defend
-    let (dragonHealth, adventurerHealth) = attack_action(OPPOSITE, PALYER, Dragon.Strength, dexterity, Dragon.Level, level, dragonHealth, adventurerHealth);
+    let (dragonHealth, adventurerHealth) = attack_action(adventurerId, count, OPPOSITE, PALYER, Dragon.Strength, dexterity, Dragon.Level, level, dragonHealth, adventurerHealth);
 
-    let (r) = attack(strength, dexterity, level, adventurerHealth, dragonHealth);
+    let (r) = attack(adventurerId, count, strength, dexterity, level, adventurerHealth, dragonHealth);
 
     return (result = r);
 }
@@ -117,6 +138,8 @@ func attack_action{
     pedersen_ptr: HashBuiltin*,
     range_check_ptr,
 } (
+    adventurerId: Uint256, 
+    count: felt,
     attacker: felt,
     defender: felt,
     attackerStrength: felt, 
@@ -132,15 +155,19 @@ func attack_action{
     if (roll_d20 == 20) {
         tempvar damage = damage * 2;
 
-        // Action(
-        //     Attacker = attacker,
-        //     Defender = defender,
-        //     ab = 0,
-        //     ac = 0,
-        //     Attacker_health = attackerHealth,
-        //     Defender_health = defenderHealth,
-        //     Damage = damage,
-        // );
+        Attack.emit(
+            adventurerId,
+            count,
+            attacker,
+            defender,
+            0,
+            0,
+            attackerHealth,
+            defenderHealth,
+            damage,
+            roll_d20,
+            1,
+        );
 
         tempvar defenderHealth = defenderHealth - damage*5;
 
@@ -150,17 +177,22 @@ func attack_action{
         let (ac) = DragonQuest.armor_class(defenderDexterity, defenderLevel);
 
         let is_hit = is_le(ac, ab);
-        if(is_hit == 1){
-            // Action(
-            //     Attacker = attacker,
-            //     Defender = defender,
-            //     ab = ab,
-            //     ac = ac,
-            //     Attacker_health = attackerHealth,
-            //     Defender_health = defenderHealth,
-            //     Damage = damage,
-            // );
 
+        Attack.emit(
+            adventurerId,
+            count,
+            attacker,
+            defender,
+            ab,
+            ac,
+            attackerHealth,
+            defenderHealth,
+            damage,
+            roll_d20,
+            is_hit,
+        );
+
+        if(is_hit == 1){
             tempvar defenderHealth = defenderHealth - damage*5;
 
             return (attackerHealth, defenderHealth);
