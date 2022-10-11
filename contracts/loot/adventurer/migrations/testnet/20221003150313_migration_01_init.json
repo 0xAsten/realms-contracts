@@ -1,0 +1,19 @@
+{
+    "starknet_requests": [
+        {
+            "action": "DEPLOY",
+            "payload": {
+                "contract": "/Users/hanlynn/Projects/starknet/realms-contracts/build/adventurer.json",
+                "network": "https://alpha4.starknet.io",
+                "constructor_args": [],
+                "salt": null,
+                "token": null
+            },
+            "response": {
+                "transaction_hash": 671091534414841198242249504507090142107943101332379057955075299750039005583,
+                "code": "TRANSACTION_RECEIVED",
+                "contract_address": 2848684111759892468392035890983786883861067850783662448542755874537223988912
+            }
+        }
+    ]
+}
